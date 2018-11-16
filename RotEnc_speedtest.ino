@@ -1,3 +1,7 @@
+// portions of this file were based on code from the makelangelo firmware
+// http://www.github.com/MarginallyClever/makelangeloFirmware
+
+
 // encoder pins
 #define BTN_EN1 31  //[RAMPS14-SMART-ADAPTER]
 #define BTN_EN2 33  //[RAMPS14-SMART-ADAPTER]
@@ -105,22 +109,32 @@ constexpr int8_t kDIR_A = 1;
 constexpr int8_t kDIR_B = -1;
 #endif
 
+#define INPUT_PINS_ON_SAME_PORT 1
+
 /*
 This table is a flattened 4x4 2d array.
 */
 // clang-format off
 static const int8_t enc_states[] PROGMEM = {
     0,          kDIR_A, kDIR_B, 0,
-	kDIR_B,     0,      0,      kDIR_A,
-	kDIR_A, 	0,      0,      kDIR_B, 
-	0,          kDIR_B, kDIR_A, 0};
+    kDIR_B,     0,      0,      kDIR_A,
+    kDIR_A,     0,      0,      kDIR_B, 
+    0,          kDIR_B, kDIR_A, 0};
 // clang-format on
 
 void read_input_pot_state_array() {
+#if INPUT_PINS_ON_SAME_PORT
+  uint8_t port = (*port_enc_a);
+  uint8_t encoder = ((port & bm_a) == bm_a) ? B01 : 0;
+  if ((port & bm_b) == bm_b) {
+    encoder |= B10;
+  }
+#else
   uint8_t encoder = (((*port_enc_a) & bm_a) == bm_a) ? B01 : 0;
   if (((*port_enc_b) & bm_b) == bm_b) {
     encoder |= B10;
   }
+#endif
 
   if (encoder != lcd_rot_old) {
     // build an array index: shift encoder left by 2 bits and combine the new
@@ -183,3 +197,21 @@ void loop() {
     consume_input();
   }
 }
+
+/**
+ * This file is part of RotEnc-speedtest.
+ *
+ * RotEnc-speedtest is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * RotEnc-speedtest is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with makelangelo-firmware.  If not, see <http://www.gnu.org/licenses/>.
+ */
+ 
